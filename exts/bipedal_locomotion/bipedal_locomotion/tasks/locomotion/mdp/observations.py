@@ -161,3 +161,22 @@ def feet_lin_vel(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntityCf
     # extract the used quantities (to enable type-hinting)
     asset: RigidObject = env.scene[asset_cfg.name]
     return asset.data.body_lin_vel_w[:, asset_cfg.body_ids].flatten(start_dim=1)
+
+def generated_commands(env: ManagerBasedRLEnv, command_name: str) -> torch.Tensor:
+    """The generated command from command term in the command manager with the given name."""
+    return env.command_manager.get_command(command_name)
+
+def joint_pos_rel_exclude_wheel(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+                                wheel_joints_name: list[str] = ["wheel_[RL]_Joint"] 
+                                ) -> torch.Tensor:
+    """The joint positions of the asset w.r.t. the default joint positions.
+
+    Note: Only the joints configured in :attr:`asset_cfg.joint_ids` will have their positions returned.
+    """
+    # extract the used quantities (to enable type-hinting)
+
+    asset: Articulation = env.scene[asset_cfg.name]
+    wheel_joints_idx = asset.find_joints(wheel_joints_name)[0]
+    all_joints_idx = range(asset.num_joints)
+    pos_idx_exclude_wheel = [i for i in all_joints_idx if i not in wheel_joints_idx]
+    return asset.data.joint_pos[:, pos_idx_exclude_wheel] - asset.data.default_joint_pos[:, pos_idx_exclude_wheel]

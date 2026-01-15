@@ -67,3 +67,53 @@ def disable_termination(
         env.termination_manager.set_term_cfg(term_name, term_cfg)
         return torch.ones(1)
     return torch.zeros(1)
+
+def lin_vel_curriculum(
+    env: ManagerBasedRLEnv,
+    env_ids: Sequence[int],
+    command_name: str,
+    # rwd_threshold: float,
+    time_step: float,
+    max_lin_vel_x: tuple[float, float],
+    max_lin_vel_y: tuple[float, float],
+) -> torch.Tensor:
+    """Curriculum that increases the velocity command ranges based on time/performance.
+
+    This term increases the velocity command ranges linearly over time.
+    """
+    # obtain the command term
+    term = env.command_manager.get_term(command_name)
+    
+    # initialize curriculum factor if not present
+    if not hasattr(term, "curriculum_factor"):
+        term.curriculum_factor = 0.0
+        # save initial ranges
+        import copy
+        term.initial_ranges = copy.deepcopy(term.cfg.ranges)
+
+    # update curriculum factor
+    # In this simple implementation, we increment linearly based on time_step
+    term.curriculum_factor += time_step
+    term.curriculum_factor = min(term.curriculum_factor, 1.0)
+    
+    #调试
+    if env.common_step_counter % 1000 == 0:
+        print(f"[Curriculum] step: {env.common_step_counter}, curriculum_factor: {term.curriculum_factor:.3f}, "
+              f"lin_vel_x: {term.cfg.ranges.lin_vel_x}, lin_vel_y: {term.cfg.ranges.lin_vel_y}")
+
+    # interpolate ranges
+    def interp(start, end, factor):
+        return start + (end - start) * factor
+
+    # update x velocity
+    term.cfg.ranges.lin_vel_x = (
+        interp(term.initial_ranges.lin_vel_x[0], max_lin_vel_x[0], term.curriculum_factor),
+        interp(term.initial_ranges.lin_vel_x[1], max_lin_vel_x[1], term.curriculum_factor),
+    )
+    # update y velocity
+    term.cfg.ranges.lin_vel_y = (
+        interp(term.initial_ranges.lin_vel_y[0], max_lin_vel_y[0], term.curriculum_factor),
+        interp(term.initial_ranges.lin_vel_y[1], max_lin_vel_y[1], term.curriculum_factor),
+    )
+
+    return torch.tensor(term.curriculum_factor, device=env.device)

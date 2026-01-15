@@ -9,12 +9,12 @@ from bipedal_locomotion.utils.wrappers.rsl_rl import (
 
 
 @configclass
-class PFFlatPPORunnerMlpCfg(RslRlOnPolicyRunnerMlpCfg):
+class SFFlatPPORunnerMlpCfg(RslRlOnPolicyRunnerMlpCfg):
     runner_type = "OnPolicyRunnerMlp"
     num_steps_per_env = 24
-    max_iterations = 3001
-    save_interval = 200
-    experiment_name = "pf_flat"
+    max_iterations = 15000
+    save_interval = 500
+    experiment_name = "sf_flat"
     empirical_normalization = False
     policy = RslRlPpoActorCriticCfg(
         class_name="ActorCritic",
@@ -47,37 +47,16 @@ class PFFlatPPORunnerMlpCfg(RslRlOnPolicyRunnerMlpCfg):
     )
 
 
-class PFRoughPPORunnerMlpCfg(PFFlatPPORunnerMlpCfg):
+class SFRoughPPORunnerMlpCfg(SFFlatPPORunnerMlpCfg):
     def __post_init__(self):
         super().__post_init__()
 
-        self.experiment_name = "pf_mlp_rough"
+        self.experiment_name = "sf_mlp_rough"
         self.runner_type = "OnPolicyRunnerMlp"
         
-class PFStairPPORunnerMlpCfg(PFFlatPPORunnerMlpCfg):
+class SFStairPPORunnerMlpCfg(SFFlatPPORunnerMlpCfg):
     def __post_init__(self):
         super().__post_init__()
 
-        self.experiment_name = "pf_mlp_stair"
-        self.runner_type = "OnPolicyRunnerMlp"
-        
-class WFFlatPPORunnerMlpCfg(PFFlatPPORunnerMlpCfg):
-    def __post_init__(self):
-        super().__post_init__()
-
-        self.experiment_name = "wf_mlp_flat"
-        self.runner_type = "OnPolicyRunnerMlp"
-
-class WFRoughPPORunnerMlpCfg(PFFlatPPORunnerMlpCfg):
-    def __post_init__(self):
-        super().__post_init__()
-
-        self.experiment_name = "wf_mlp_rough"
-        self.runner_type = "OnPolicyRunnerMlp"
-        
-class WFStairPPORunnerMlpCfg(PFFlatPPORunnerMlpCfg):
-    def __post_init__(self):
-        super().__post_init__()
-
-        self.experiment_name = "wf_mlp_stair"
+        self.experiment_name = "sf_mlp_stair"
         self.runner_type = "OnPolicyRunnerMlp"

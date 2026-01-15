@@ -8,6 +8,14 @@ from omni.isaac.lab.assets import Articulation, RigidObject
 from omni.isaac.lab.envs import ManagerBasedEnv
 from omni.isaac.lab.managers import SceneEntityCfg
 
+def prepare_quantity_for_tron(
+    env: ManagerBasedEnv,
+    env_ids: torch.Tensor | None,
+    asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+    foot_radius = 0.127,
+):
+    asset: Articulation = env.scene[asset_cfg.name]
+    env._foot_radius = foot_radius
 
 def apply_external_force_torque_stochastic(
     env: ManagerBasedEnv,
